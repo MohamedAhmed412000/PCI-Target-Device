@@ -287,7 +287,7 @@ Mem[1] = W1;
 end
 endmodule*/ 
 
-module testbench_2(Trdy, Devsel, Stop, Address);
+/*module testbench_2(Trdy, Devsel, Stop, Address);
     reg[31:0] W2, Mem[0:7];
     clk c1(Clk);
     inout [31:0]Address;
@@ -323,5 +323,5 @@ module testbench_2(Trdy, Devsel, Stop, Address);
 	    Cbe <= 4'b0001;
 	    Irdy <= 1'b1;
     end
-endmodule
+endmodule*/
 
