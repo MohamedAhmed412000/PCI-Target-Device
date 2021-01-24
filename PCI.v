@@ -65,92 +65,16 @@ module PCI(Clk, Rst, Frame, IRDY, TRDY, Ad, Ctrl, DevSel, Stop);
 			        end // check z
 			    end
             end
-            else if (Frame == 1'b1)begin
-                if(TRDY == 1'b0 && IRDY == 1'b0)begin
-                    if(~flgOP) begin // Last Data Read
-                        W2 = Buf[Address];
-                    end
-                    else if(flgOP) begin // Last Data Write
-                    	Buf[Address] = W1;
-                    end
-		    DevSel <= 1'b1;
-                    TRDY <= 1'b1;
-                    flg0 <= 1'b0;
-                    flgAdd <= 1'b0;
-                    flgDS <= 1'b1;
-                    flgIR <= 1'b0;
-                    Counter = 3'b000;
-                    flgTR <= 1'b1;
-            	    Stop <= 1'b1;
-    	            flg <= 1'b1;
-    	            W2 <= 32'hzzzzzzzz;
-            	    flgData <= 1'b0;   // Flag to data number 1
-            	    flgDOA <= 1'b0;
-                end
-                else if(TRDY == 1'b0 && IRDY == 1'b1)begin
-                    if(~flgOP) begin // Last Data Read
-                        W2 = Buf[Address];
-                        TRDY <= 1'b1;
-                        DevSel <= 1'b1;
-                    end
-                    else if(flgOP) begin // Last Data Write
-                    	//Do Nothing
-                    end
-                    flg0 <= 1'b0;
-                    flgAdd <= 1'b0;
-                    flgDS <= 1'b1;
-                    flgIR <= 1'b0;
-                    Counter = 3'b000;
-                    flgTR <= 1'b1;
-                    TRDY <= 1'b1;
-            	    DevSel <= 1'b1;
-            	    Stop <= 1'b1;
-    	            flg <= 1'b1;
-    	            W2 <= 32'hzzzzzzzz;
-            	    flgData <= 1'b0;   // Flag to data number 1
-            	    flgDOA <= 1'b0;
-                end
-                else if(TRDY == 1'b1 && IRDY == 1'b0)begin
-                    // Do Nothing
-		    flg0 <= 1'b0;
-                    flgAdd <= 1'b0;
-                    flgDS <= 1'b1;
-                    flgIR <= 1'b0;
-                    Counter = 3'b000;
-                    flgTR <= 1'b1;
-                    TRDY <= 1'b1;
-            	    DevSel <= 1'b1;
-            	    Stop <= 1'b1;
-    	            flg <= 1'b1;
-    	            W2 <= 32'hzzzzzzzz;
-            	    flgData <= 1'b0;   // Flag to data number 1
-            	    flgDOA <= 1'b0;
-                end
-                else if(TRDY == 1'b1 && IRDY == 1'b1)begin
-                    flg0 <= 1'b0;
-                    flgAdd <= 1'b0;
-                    flgDS <= 1'b1;
-                    flgIR <= 1'b0;
-                    Counter = 3'b000;
-                    flgTR <= 1'b1;
-                    TRDY <= 1'b1;
-            	    DevSel <= 1'b1;
-            	    Stop <= 1'b1;
-    	            flg <= 1'b1;
-    	            W2 <= 32'hzzzzzzzz;
-            	    flgData <= 1'b0;   // Flag to data number 1
-            	    flgDOA <= 1'b0;
-                end
-            end //Close Not Frame
         end
     end
     always@(posedge Clk) begin
-        if(flgOP) begin
+        if(Frame == 1'b0) begin
             if(flgDOA == 1'b1) begin   // Data Phase, Check to begin sending Data , IRDY equal zero
-		            DevSel <= flgDS;	 
+		         
 		            if(flgOP == 1'b1) begin // Write Operation, Data Phase
                         if(flgData == 1'b0) begin // check first data when Ad is Turning around
-                    	    TRDY <= 1'b0;
+                    	    	DevSel = flgDS;	
+				TRDY <= 1'b0;
                     	    BE = {{8{Ctrl[3]}}, {8{Ctrl[2]}}, {8{Ctrl[1]}}, {8{Ctrl[0]}}};
                     		Buf[Address] = W1 & BE;
                 			flgData <= 1'b1;
@@ -192,14 +116,30 @@ module PCI(Clk, Rst, Frame, IRDY, TRDY, Ad, Ctrl, DevSel, Stop);
                     end // close Write Operation 
 	        end
 		end
+		if (Frame == 1'b1)begin
+                DevSel <= 1'b1;
+                TRDY <= 1'b1;
+                flg0 <= 1'b0;
+                flgAdd <= 1'b0;
+                flgDS <= 1'b1;
+                flgIR <= 1'b0;
+                Counter = 3'b000;
+                flgTR <= 1'b1;
+        	    Stop <= 1'b1;
+                flg <= 1'b1;
+	            W2 <= 32'hzzzzzzzz;
+                flgData <= 1'b0;   // Flag to data number 1
+        	    flgDOA <= 1'b0;
+        end //Close Not Frame
     end
     always@(negedge Clk) begin
-       if(~flgOP) begin    
+       if(Frame == 1'b0) begin    
 			    if(flgDOA == 1'b1) begin   // Data Phase, Check to begin sending Data , IRDY equal zero
-		            DevSel <= flgDS;
+		            
 		            if(flgOP == 1'b0) begin // Read Operation
                     	if(flgData == 1'b0) begin // check first data when Ad is Turning around
-                    	    TRDY <= 1'b0;
+				DevSel = flgDS;                    	    
+				TRDY <= 1'b0;
                     		W2 = Buf[Address];
                 			flgData <= 1'b1;
                 			Address  <= (Address + 1) % 4;
@@ -239,6 +179,21 @@ module PCI(Clk, Rst, Frame, IRDY, TRDY, Ad, Ctrl, DevSel, Stop);
                     end
                 end
     	end //else clk not rst
+    	if (Frame == 1'b1)begin
+                DevSel <= 1'b1;
+                TRDY <= 1'b1;
+                flg0 <= 1'b0;
+                flgAdd <= 1'b0;
+                flgDS <= 1'b1;
+                flgIR <= 1'b0;
+                Counter = 3'b000;
+                flgTR <= 1'b1;
+        	    Stop <= 1'b1;
+                flg <= 1'b1;
+	            W2 <= 32'hzzzzzzzz;
+                flgData <= 1'b0;   // Flag to data number 1
+        	    flgDOA <= 1'b0;
+        end //Close Not Frame
     end //always
 endmodule
 
@@ -331,8 +286,9 @@ Mem[1] = W1;
 
 end
 endmodule*/ 
-module testbench_3(Trdy, Devsel, Stop, Address);
-    reg[31:0] W2, Get, Mem[0:7];
+
+module testbench_2(Trdy, Devsel, Stop, Address);
+    reg[31:0] W2, Mem[0:7];
     clk c1(Clk);
     inout [31:0]Address;
     input Stop, Devsel, Trdy;
@@ -341,18 +297,12 @@ module testbench_3(Trdy, Devsel, Stop, Address);
     wire[31:0] W1;
     PCI p1(Clk, Rst, Frame, Irdy, Trdy, Address, Cbe, Devsel, Stop);
     assign Address = flg? W2 : 32'hzzzzzzzz;
-    assign W1 = Address;
+    assign W1 = flg? Address : 32'hzzzzzzzz;
     //Beginig Testbench 
     initial begin
+	//$dumpfile("testbench.vcd");
+	//$dumpvars(0, testbench);
         Rst <= 1'b1;
-        Mem[0] <= 32'h11111111;
-        Mem[1] <= 32'h00001111;
-        Mem[2] <= 32'h11110000;
-        Mem[3] <= 32'h00000000;
-        Mem[4] <= 32'h10101010;
-        Mem[5] <= 32'h01010101;
-        Mem[6] <= 32'h11111010;
-        Mem[7] <= 32'h01001111;
         #20
             Rst <= 1'b0;
             Frame <= 1'b1;
@@ -360,30 +310,18 @@ module testbench_3(Trdy, Devsel, Stop, Address);
 	    flg <= 1'b1;
             Rst <= 1'b1;
             Frame <= 1'b0;
-            W2 <= 32'h00001F41; 
-            Cbe <= 4'b0011; // Write Operation
+            W2 <= 32'h00001F40; //Not Our PCI Device
+            Cbe <= 4'b0011; // Read Operation
 	    #20
-	        Irdy <= 1'b0;
-	        W2 <= Mem[0];
-	        Cbe <= 4'b1100;
+            Frame <= 1'b0;
+	    Irdy <= 1'b0;
+	    W2 <= 32'h11111000;
+		Cbe <= 4'b1011;
 		 Frame <= 1'b1;
-	    #20
-	       
-		flg <= 1'b0;
-		W2 <= 32'hzzzzzzzz; // Turning Around
-            Cbe <= 4'b0000;
-		
-	    #20
-		flg <= 1'b1;
-	        Frame <= 1'b0;
-	        W2 <= 32'h00001F41; 
-            	Cbe <= 4'b0010; // Read Operation
-        #20
-            W2 <= 32'hzzzzzzzz; // Turning Around
-            Cbe <= 4'b0000;
 	#20
-		Mem[0] <= W1;
-		Frame <= 1'b1;
-        
+	    W2 <= 32'h00001111;
+	    Cbe <= 4'b0001;
+	    Irdy <= 1'b1;
     end
 endmodule
+
