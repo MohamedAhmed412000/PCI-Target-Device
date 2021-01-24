@@ -368,9 +368,7 @@ TestEnt.grid(row=10, column=2, padx=5, pady=5)
 FileName = ""
 TestName = ""
 Sim = ttk.Button(root, width=20, text="Simulate")
-Sim.grid(row=10, column=3, padx=10, pady=10)
-kill = ttk.Button(root, width=20, text="Plot")
-kill.grid(row=10, column=4, padx=10, pady=10)
+Sim.grid(row=10, column=3, columnspan=2, padx=10, pady=10)
 def Simulate():
     global FileName
     if fileEnt.get() == "":
@@ -397,8 +395,5 @@ def Simulate():
     os.system("move test.vcd c:\iverilog\\gtkwave\\bin\\")
     os.chdir("..\gtkwave\\bin\\")
     os.system("gtkwave test.vcd")
-def killed():
-    os.system("taskkill /f /im vvp.exe")
-kill.configure(command=killed)
 Sim.conf igure(command=Simulate)
 root.mainloop()
